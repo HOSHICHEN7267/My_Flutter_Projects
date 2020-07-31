@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'Uhome.dart';
@@ -15,6 +16,7 @@ class TransportationPage extends StatefulWidget{
 }
 
 class _TransportationPageState extends State<TransportationPage>{
+
   int _currentIndex = 1;
 
   final _Pages = <Widget>[
@@ -23,9 +25,8 @@ class _TransportationPageState extends State<TransportationPage>{
     SplashProfilePage(),
   ];
 
-  Color _iconColor;
   bool colorSwitched = false;
-  var logoImage = 'images/Train.jpg';
+  var logoImage = 'images/TrainTitle.jpg';
   List<IconData> _Icons = [
     Icons.directions_railway,
     Icons.train,
@@ -45,6 +46,7 @@ class _TransportationPageState extends State<TransportationPage>{
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
+        //backgroundColor: Color.fromRGBO(238, 238, 224, 1),
         onTap: onTabTapped,
         currentIndex: _currentIndex, // this will be set when a new tab is tapped
         items: [
@@ -64,7 +66,7 @@ class _TransportationPageState extends State<TransportationPage>{
       ),
       body: SafeArea(
         child: Container( //background & upper box
-            height: MediaQuery
+          height: MediaQuery
                 .of(context)
                 .size
                 .height,
@@ -81,18 +83,18 @@ class _TransportationPageState extends State<TransportationPage>{
                 Image.asset(
                   logoImage,
                   fit: BoxFit.contain,
-                  height: 260.0,
+                  //height: 260.0,
                   width: MediaQuery.of(context).size.width,
                 ),
                 Text(
                   '大眾運輸時刻查詢',
                   style: TextStyle(
-                      fontSize: 35,
+                      fontSize: 40,
                       color: Colors.black,
                       fontWeight: FontWeight.bold),
                 ),
                 Container( //beneath box
-                  height: 100.0,
+                  height: 300.0,
                   width: MediaQuery
                       .of(context)
                       .size
@@ -114,6 +116,7 @@ class _TransportationPageState extends State<TransportationPage>{
       ),
     );
   }
+
   FlatButton selectionButtons(int num){
     return FlatButton(
         onPressed: (){
@@ -129,49 +132,57 @@ class _TransportationPageState extends State<TransportationPage>{
             );
           }
         },
-        child: Stack(
-          children: <Widget>[
-            Container(
-              width: 155.0,
-              padding: const EdgeInsets.all(12.0),
-              alignment: Alignment.centerRight,
-              child: Opacity(
-                  opacity: 0.3,
-                  child: Icon(
-                    _Icons[num],
-                    size: 60,
-                    color: Colors.white,
-                  )),
-              decoration: BoxDecoration(
-                color: selectionButtonsColor[num],
-                borderRadius: BorderRadius.circular(20.0),
+        child: Container(
+          width: 155.0,
+          child: Stack(
+            alignment: AlignmentDirectional.centerStart,
+            overflow: Overflow.clip,
+            children: <Widget>[
+              Container(
+                width: 155.0,
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: selectionButtonsColor[num],
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.only(left: 16.0, top: 10.0, right: 16.0, bottom: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                children: <Widget>[
+                  SizedBox(width: 20,),
+                  Container(
+                    width: 135.0,
+                    child: Opacity(
+                        opacity: 0.3,
+                        child: Icon(
+                          _Icons[num],
+                          size: 250,
+                          color: Colors.white,
+                        )),
+                  ),
+                ],
+              ),
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Icon(
                     _Icons[num],
                     color: Colors.white,
-                    size: 35.0,
+                    size: 60.0,
                   ),
                   const SizedBox(height: 6.0),
                   Text(
                     selectionLabelText[num],
                     style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20.0
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 40.0
                     ),
-                  )
+                  ),
                 ],
               ),
-            )
-          ],
-        ),
+            ],
+          ),
+        )
     );
   }
 

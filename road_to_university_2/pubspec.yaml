@@ -58,8 +58,8 @@ flutter:
     - images/hashtag.png
     - images/clock.png
     - images/google_logo.png
-    - images/NCCU.jpg
-    - images/Train.jpg
+    - images/TrainTitle.jpg
+    - images/SchoolTitle.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
