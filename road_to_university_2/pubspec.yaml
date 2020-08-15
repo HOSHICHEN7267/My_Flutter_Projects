@@ -34,7 +34,7 @@ dependencies:
   webview_flutter: ^0.3.22+1
   intl: ^0.16.1
   pointycastle: ^1.0.2
-  dio: ^3.0.9
+  gsheets: ^0.2.5
 
 dev_dependencies:
   flutter_test:
