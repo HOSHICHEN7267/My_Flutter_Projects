@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:gsheets/gsheets.dart';
 import 'Uhome.dart';
 import 'Thome.dart';
 import 'profile.dart';
@@ -19,14 +20,65 @@ class UareaState extends State<Uarea>{
     SplashProfilePage(),
   ];
 
+  final primary = Color(0xff696b9e);
+  final secondary = Color(0xfff29a94);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromRGBO(47, 75, 110, 1),
-        title: Text('地區查詢'),
+      backgroundColor: Color(0xfff0f0f0),
+      body: SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          child: Stack(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(top: 125, bottom: 70),
+                width: double.infinity,
+                child: _ListView(context),
+              ),
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    color: primary,
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30))),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        "地區查詢",
+                        style: TextStyle(color: Colors.white, fontSize: 24),
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.favorite,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: _ListView(context),
       bottomNavigationBar: BottomNavigationBar(
         onTap: onTabTapped,
         currentIndex: _currentIndex, // this will be set when a new tab is tapped
@@ -67,19 +119,45 @@ class UareaState extends State<Uarea>{
     return ListView.builder(
       itemCount: _Areas.length,
       itemBuilder: (context, index){
-        return Card(
-          child: ListTile(
-            title: Text(_Areas[index]),
-            trailing: Icon(Icons.keyboard_arrow_right),
-            onTap: (){
-              Navigator.push(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) => SUarea(index: index, AreaName: _Areas[index],),
-                  transitionDuration: Duration(seconds: 0),
+        return FlatButton(
+          onPressed: (){
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation1, animation2) => SUarea(index: index, AreaName: _Areas[index],),
+                transitionDuration: Duration(seconds: 0),
+              ),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25),
+              color: Colors.white,
+            ),
+            width: double.infinity,
+            height: 80,
+            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                SizedBox(width: 5,),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 30,
+                  color: secondary,
                 ),
-              );
-            },
+                SizedBox(width: 10,),
+                Text(
+                  _Areas[index],
+                  style: TextStyle(
+                    color: primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -97,6 +175,30 @@ class SUarea extends StatefulWidget{
   SUareaState createState() => SUareaState();
 }
 
+class SchoolData{
+  String name;
+  String num;
+  String area;
+  String address;
+
+  SchoolData(this.name, this.num, this.area, this.address);
+}
+
+const _credentials = r'''
+{
+  "type": "service_account",
+  "project_id": "roadtouniversity",
+  "private_key_id": "3eb01f71ae3a1fcbec9538d7afcf15ede2895851",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC86Ppxn5fOVIRF\nXzluf91L7n14kfllf+3IKh6UalDP0zyFpjxx9RcYXmje4qibXflkeK4NTrkV6V1c\nPvE15pSw2E9tFl58kPhqisNUfLkssGuugREbzciI6bKSYWRTawqQeWuU7YMLqxLl\n0SrfrnQERBsHEfApjvlSOpac4kxPYlWqtQdCAnEEfckntZddObV0VR8WCsx9eLl/\nnnvq1dvVUuZosjQKi5xtFNzq/aocxKNbfhT52gJMZZafMNQhPPBfchFto56VZ57Y\nvNIo7yLUI8so3WJj9+/qD8xwM2EhtcdeoAApK/hdgcAgeceK9tKO+meVl3RnqkcV\nKisi5CMdAgMBAAECggEAAVuWCF6IUJwB+KeHcxvCqPUWro/FviYM/P/rEiI5oNMN\nYfxjEHlUYXyQguVO8CPKvEO8yM0O8NppbUMyaETymkilcBFjaYluNMtCBxMbIOXZ\nSNroRMA2Ixc1evekltkKpFxnDN4U3VyRqU9FBPBWKMZnicEmNzWuCdpMBS9t6eiR\nYG2x3oXw0IBtnhKOm9QFPiPZ6YCcISwf6FNYCgzYX1qqShwf7pVMRcfEsdjeSLSF\nGsz4EbMWqC220zrSKiYaz9JWvxCZHJCwsKlUBqj+sZSwJTlmjrvWe/PZcQLsRhSa\nFQDw2o8MkBjPDQwtXDMeOtcuiNsFgsZ+dMA5Rh89qQKBgQD4YoKq/kwUgcxM0+U6\nEZE5dM+/JnTKJQ+IQ+dW9xJ5EnkvYjwcXPpj8IkhOa5KB5JhqvbiuHT7w6DK0it9\nxqFBY0i41d7rIqn1UkzW1KUTVPoPC41p3tfvRniUd9+3c1thMql9PnqqzA7b+5YI\nm9RiXN7oBu7CZMWmdhRpH9wluQKBgQDCs6ulzrHtUmepl2byWZUm8+vBEOaz8yVj\nYJMOiGkS4JD3JIQVd/yjEE/svMk4DtvUZEO4SafCAdxgnCABh1t6EwDC6mJ8qWkR\n72W6d4vN7VJLpEjjYxQLPAMAnEK8zFTqLkebUMPU7r7NKbcYMMWeWyZMx47u4BaP\ncj85Sw3ahQKBgCA0HX7wA4sxHPzlCDZUKsEJTRoacU/4KCBhtW/IDuQVqhKjqOmA\ngJJOkGj3YoqEms0A7ouMoNY3kfRZ9XuUMjoZFkeoqwNPdjuxVPcRkOmFvfoPZGFS\nnCqQt3eAZ0gQs8tRVzo+zIayeEa7QsOQ+KNcKSZqJ7CaginH63OJxvA5AoGBALl4\nqkSSt4/ZdgJpxZmLmLe4mJYb4Yj+UFlwf+XSMDXZUn77fA9vc2xqd5iO5ifOj76t\nnI0LLRF08FffoeWS6aNKQulqmVMjloGNSZztkHIkZsbDwuNJWKizDDEiqbhr9V/3\noiLkNwi6PWv3FwGmRDprnfp6B0CqmxMew/dx9cp5AoGAUKiOIV75BhAZ7dyPvk1M\nDN7msNbZuECY9nDdtIh9igyZaU56LjePeA7nMLFdREZSkshntzFJyAbQYH97A9Ih\nmAe2ivSE9Hn4KiNOCOhRjjmwaAvD3eSKdE9g74Zoai6aaR0g0qtWgFO00Jw5qIuF\nfkH6h4ipVJNj4DFP8Zr/0AY=\n-----END PRIVATE KEY-----\n",
+  "client_email": "roadtouniversity@roadtouniversity.iam.gserviceaccount.com",
+  "client_id": "106199981609892921381",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/roadtouniversity%40roadtouniversity.iam.gserviceaccount.com"
+}
+''';
+
 class SUareaState extends State<SUarea>{
   int _currentIndex = 0;
 
@@ -106,58 +208,156 @@ class SUareaState extends State<SUarea>{
     SplashProfilePage(),
   ];
 
-  final AreaSchool = {
-    '基隆市':['(021)國立臺灣海洋大學'],
-    '台北市':['(001)國立臺灣大學', '(002)國立臺灣師範大學', '(005)東吳大學', '(006)國立政治大學', '(013)國立交通大學臺北校區',
-              '(014)淡江大學臺北校區', '(017)中國文化大學', '(019)大同大學', '(025)國立陽明大學', '(028)國立臺北藝術大學',
-              '(032)國立臺北教育大學', '(035)臺北市立大學', '(046)銘傳大學', '(047)世新大學', '(050)實踐大學',
-              '(099)國立臺北大學臺北校區', '(109)臺北醫學大學', '(112)康寧大學'],
-    '新北市':['(002)國立臺灣師範大學林口校區', '(014)淡江大學', '(020)輔仁大學', '(044)華梵大學', '(056)國立臺灣藝術大學',
-              '(079)真理大學', '(099)國立臺北大學', '(152)馬偕醫學院'],
-    '桃園市':['(008)中原大學', '(016)國立中央大學', '(030)長庚大學', '(039)國立體育大學', '(046)銘傳大學桃園校區', '(040)元智大學', '(110)開南大學'],
-    '新竹市':['(011)國立清華大學', '(013)國立交通大學', '(043)中華大學', '(065)玄奘大學'],
-    '苗栗縣':['(151)國立聯合大學'],
-    '台中市':['(003)國立中興大學', '(009)東海大學', '(012)中國醫藥大學', '(015)逢甲大學', '(018)靜宜大學',
-              '(026)中山醫學大學', '(031)國立臺中教育大學', '(060)國立臺灣體育運動大學', '(134)亞洲大學'],
-    '彰化縣市':['(023)國立彰化師範大學', '(042)大葉大學', '(133)明道大學'],
-    '南投縣':['(058)國立暨南國際大學'],
-    '嘉義縣市':['(041)國立中正大學', '(059)南華大學', '(100)國立嘉義大學'],
-    '台南市':['(004)國立成功大學', '(033)國立臺南大學', '(051)長榮大學', '(063)國立臺南藝術大學', '(079)真理大學臺南校區',
-              '(111)台灣首府大學', '(112)康寧大學臺南校區', '(113)中信金融管理學院'],
-    '高雄市':['(007)高雄醫學大學', '(022)國立高雄師範大學', '(027)國立中山大學', '(045)義守大學', '(050)實踐大學高雄校區', '(101)國立高雄大學'],
-    '屏東市':['(036)國立屏東大學'],
-    '宜蘭縣市':['(014)淡江大學蘭陽校區', '(130)佛光大學', '(150)國立宜蘭大學'],
-    '花蓮縣市':['(034)國立東華大學', '(108)慈濟大學'],
-    '台東市':['(038)國立臺東大學'],
-    '金門縣':['(046)銘傳大學金門校區', '(153)國立金門大學'],
-  };
+  final primary = Color(0xff696b9e);
+  final secondary = Color(0xfff29a94);
+
+  Future<List<SchoolData>> getSchoolData() async{
+    const _spreadsheetId = '1EnBL7x96KD3JugUP2rQBQlJXylULVCcKH9rMAVO7l2I';
+    const start_row = 2;
+    const end_row = 69;
+    print('aha');
+
+    // init GSheets
+    final gsheets = GSheets(_credentials);
+    // fetch spreadsheet by its id
+    final ss = await gsheets.spreadsheet(_spreadsheetId);
+    // get worksheet by its title
+    final sheet = await ss.worksheetByTitle('Datas');
+
+    List<SchoolData> data = new List<SchoolData>();
+
+    print(await sheet.values.row(3));
+
+    for(int i = start_row ; i <= end_row ; i++){
+      final now = await sheet.values.row(i);
+      if(now[2] == widget.AreaName){
+        data.add(SchoolData(now[0], now[1], now[2], now[3]));
+      }
+    }
+
+    return data;
+  }
 
   @override
   Widget build(BuildContext context) {
-
-    List<String> SchoolList = AreaSchool[widget.AreaName];
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromRGBO(47, 75, 110, 1),
-        title: Text(widget.AreaName),
-      ),
-      body: ListView.builder(
-        itemCount: SchoolList.length,
-        itemBuilder: (context, index){
-          return Card(
-            child: ListTile(
-              title: Text(SchoolList[index]),
-              trailing: Icon(Icons.keyboard_arrow_right),
-              onTap: (){
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation1, animation2) => WebUarea(index: index, AreaName: widget.AreaName, SchoolName: SchoolList[index],),
-                    transitionDuration: Duration(seconds: 0),
+      body: FutureBuilder(
+        future: getSchoolData(),
+        builder: (context, snap){
+          if(!snap.hasData){
+            print('hi');
+            return Container(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                        color: primary,
+                        borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30))),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            widget.AreaName,
+                            style: TextStyle(color: Colors.white, fontSize: 24),
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.favorite,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                );
-              },
+                  SizedBox(height: 250,),
+                  SizedBox(
+                    height: 50,
+                    width: 50,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(secondary),
+                      strokeWidth: 6.0,
+                    ),
+                  ),
+                  SizedBox(height: 50,),
+                  Text('Loading...', style: TextStyle(fontSize: 25, color: primary, fontWeight: FontWeight.bold),),
+                ],
+              ),
+            );
+          }
+          print('ho');
+          List<SchoolData> schoolDatas = snap.data;
+          return SingleChildScrollView(
+            child: Container(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: Stack(
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.only(top: 125, bottom: 70),
+                    //height: MediaQuery.of(context).size.height,
+                    width: double.infinity,
+                    child: _ListView(context, schoolDatas),
+                  ),
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                        color: primary,
+                        borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30))),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            widget.AreaName,
+                            style: TextStyle(color: Colors.white, fontSize: 24),
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.favorite,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -182,6 +382,7 @@ class SUareaState extends State<SUarea>{
       ),
     );
   }
+
   void onTabTapped(int index){
     setState(() {
       _currentIndex = index;
@@ -194,16 +395,124 @@ class SUareaState extends State<SUarea>{
       );
     });
   }
+
+  Widget _ListView(BuildContext context, List<SchoolData> schooldatas){
+    return ListView.builder(
+      itemCount: schooldatas.length,
+      itemBuilder: (context, index){
+        return FlatButton(
+          onPressed: (){
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation1, animation2) => WebUarea(SchoolCode: schooldatas[index].num, AreaName: widget.AreaName, SchoolName: schooldatas[index].name,),
+                transitionDuration: Duration(seconds: 0),
+              ),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25),
+              color: Colors.white,
+            ),
+            width: double.infinity,
+            height: 110,
+            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 30,
+                  height: 30,
+                  margin: EdgeInsets.only(right: 15),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(width: 3, color: secondary),
+                    image: DecorationImage(
+                      image: ExactAssetImage('images/university.png'),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        schooldatas[index].name,
+                        style: TextStyle(
+                          color: primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 6,
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.location_on,
+                            color: secondary,
+                            size: 20,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            schooldatas[index].address,
+                            style: TextStyle(
+                              color: primary,
+                              fontSize: 14.0,
+                              letterSpacing: .3,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 6,
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.search,
+                            color: secondary,
+                            size: 20,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            schooldatas[index].num,
+                            style: TextStyle(
+                              color: primary,
+                              fontSize: 14,
+                              letterSpacing: .3,
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 //WebUarea-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 class WebUarea extends StatefulWidget{
-  int index;
+  String SchoolCode;
   String AreaName;
   String SchoolName;
-  WebUarea({this.index, this.AreaName, this.SchoolName});
+  WebUarea({this.SchoolCode, this.AreaName, this.SchoolName});
 
   WebUareaState createState() => WebUareaState();
 }
@@ -238,7 +547,7 @@ class WebUareaState extends State<WebUarea>{
         title: Text(widget.SchoolName),
       ),
       body: WebView(
-        initialUrl: 'https://university-tw.ldkrsi.men/caac/${AreaSchoolCode[widget.AreaName][widget.index]}/#gsc.tab=0',
+        initialUrl: 'https://university-tw.ldkrsi.men/caac/${widget.SchoolCode}/#gsc.tab=0',
         javascriptMode: JavascriptMode.unrestricted,
       ),
     );
